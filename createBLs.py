@@ -85,7 +85,6 @@ args = parser.parse_args()
 
 # Loop over the input files
 for inputFile in args.files:
-    print(inputFile)
 
     # Get root name of the SINEX file and open the output files
     rootName = os.path.basename(inputFile)
@@ -157,7 +156,6 @@ for inputFile in args.files:
         col = estimateLines.pop().rstrip().split()
         source['z'] = float(col[8])
         data.append(source)
-    print('len data:', len(data))
 
     # Create the variance-covariance matrix. In the SINEX file it is given as
     # a lower triangular matrix
@@ -170,7 +168,6 @@ for inputFile in args.files:
     for i in range(3 * len(data)):
         vcvU[i, i] = 0
     vcv = vcvL + vcvU
-    print('vcv:', vcv.shape)
 
     # Create the design matrix
     desMatrix = np.array(np.zeros((3 * (len(data) - 1), 3 * len(data))))
@@ -181,7 +178,6 @@ for inputFile in args.files:
         desMatrix[3 * i, 3 * (i + 1)] = 1
         desMatrix[3 * i + 1, 3 * (i + 1) + 1] = 1
         desMatrix[3 * i + 2, 3 * (i + 1) + 2] = 1
-    print('design matrix:', desMatrix.shape)
 
     # Create the matrix of observed antenna positions
     coords = np.array(np.zeros((3 * len(data), 1)))
@@ -189,13 +185,10 @@ for inputFile in args.files:
         coords[3 * i, 0] = data[i]['x']
         coords[3 * i + 1, 0] = data[i]['y']
         coords[3 * i + 2, 0] = data[i]['z']
-    print('coordinates:', coords.shape)
 
     # Calculate the deltas and the corresponding VCV matrix
     deltas = desMatrix @ coords
     delVCV = desMatrix @ vcv @ desMatrix.transpose()
-    print('deltas:', deltas.shape)
-    print('delVCV:', delVCV.shape)
 
     # Loop over the sites and write the station data to the output XML file
     for i in range(len(data)):
@@ -246,35 +239,25 @@ for inputFile in args.files:
         msr.write('\t\t\t<SigmaZZ>%20.14e</SigmaZZ>\n' %
                   (delVCV[3 * i + 2, 3 * i + 2]))
         for j in range(numCovar):
-            print(i, j)
             msr.write('\t\t\t<GPSCovariance>\n')
             msr.write('\t\t\t\t<m11>%20.14e</m11>\n' %
                       (delVCV[3 * (i + 1) + 3 * j, 3 * i]))
-            print(3 * (i + 1) + 3 * j, 3 * i)
             msr.write('\t\t\t\t<m12>%20.14e</m12>\n' %
                       (delVCV[3 * (i + 1) + 3 * j + 1, 3 * i]))
-            print(3 * (i + 1) + 3 * j + 1, 3 * i)
             msr.write('\t\t\t\t<m13>%20.14e</m13>\n' %
                       (delVCV[3 * (i + 1) + 3 * j + 2, 3 * i]))
-            print(3 * (i + 1) + 3 * j + 2, 3 * i)
             msr.write('\t\t\t\t<m21>%20.14e</m21>\n' %
                       (delVCV[3 * (i + 1) + 3 * j, 3 * i + 1]))
-            print(3 * (i + 1) + 3 * j, 3 * i + 1)
             msr.write('\t\t\t\t<m22>%20.14e</m22>\n' %
                       (delVCV[3 * (i + 1) + 3 * j + 1, 3 * i + 1]))
-            print(3 * (i + 1) + 3 * j + 1, 3 * i + 1)
             msr.write('\t\t\t\t<m23>%20.14e</m23>\n' %
                       (delVCV[3 * (i + 1) + 3 * j + 2, 3 * i + 1]))
-            print(3 * (i + 1) + 3 * j + 2, 3 * i + 1)
             msr.write('\t\t\t\t<m31>%20.14e</m31>\n' %
                       (delVCV[3 * (i + 1) + 3 * j, 3 * i + 2]))
-            print(3 * (i + 1) + 3 * j, 3 * i + 2)
             msr.write('\t\t\t\t<m32>%20.14e</m32>\n' %
                       (delVCV[3 * (i + 1) + 3 * j + 1, 3 * i + 2]))
-            print(3 * (i + 1) + 3 * j + 1, 3 * i + 2)
             msr.write('\t\t\t\t<m33>%20.14e</m33>\n' %
                       (delVCV[3 * (i + 1) + 3 * j + 2, 3 * i + 2]))
-            print(3 * (i + 1) + 3 * j + 2, 3 * i + 2)
             msr.write('\t\t\t</GPSCovariance>\n')
         numCovar -= 1
         msr.write('\t\t</GPSBaseline>\n')
