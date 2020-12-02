@@ -80,6 +80,7 @@ parser.add_argument('-r', metavar='reference frame', dest='refFrame', type=str,
                     help='The reference frame of the SINEX file')
 parser.add_argument('files', nargs='+',
                     help='The SINEX file to be converted')
+parser.add_argument('--version', action='version', version='%(prog)s 3.00')
 args = parser.parse_args()
 
 # Loop over the input files
